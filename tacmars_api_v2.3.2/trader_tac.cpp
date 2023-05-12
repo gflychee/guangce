@@ -45,7 +45,7 @@ int TraderTac::login(cfg_t *cfg)
     api->RegisterSpi(this);
     api->RegisterFront(frontaddress);
     api->SubscribePrivateTopic(TAC_TERT_QUICK);
-    api->SetLogFilePath(ClientLogFilePath);
+    api->SetLogFilePath(clientlogfilepath);
     api->SetLogLevel(true);
     api->SetTraderApiCpuAffinity(-1, 1); // recv_cpu 设为-1 不绑定cpu, send_cpu 设为大于0 的数，说明绑定cpu
     api->SetUdpSendOpen(true); // 使用udp协议发送，可以增加发送速度，但是有可能丢包。
