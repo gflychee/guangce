@@ -43,7 +43,7 @@ int TraderTac::login(cfg_t *cfg)
     }
     wflog_msg("version:%s",api->GetApiVersion());
     api->RegisterSpi(this);
-    api->RegisterFront(FrontAddress);
+    api->RegisterFront(frontaddress);
     api->SubscribePrivateTopic(TAC_TERT_QUICK);
     api->SetLogFilePath(ClientLogFilePath);
     api->SetLogLevel(true);
@@ -72,13 +72,13 @@ void TraderTac::OnFrontConnected()
     CTacFtdcAuthenticateField req = {};
 
     // Set APP ID
-    strncpy(req.AppID, AppId, sizeof(req.AppID));
+    strncpy(req.AppID, appid, sizeof(req.AppID));
 
     // Set Authenticate Code
-    strncpy(req.AuthCode, LicenseNo, sizeof(req.AuthCode));
+    strncpy(req.AuthCode, authcode, sizeof(req.AuthCode));
 
     // Set User ID
-    strncpy(req.UserID, AccountNo, sizeof(req.UserID));
+    strncpy(req.UserID, userid, sizeof(req.UserID));
 
     // Submit Login request
     api->ReqAuthenticate(&req, 0);
@@ -106,10 +106,10 @@ void TraderTac::OnRspAuthenticate(CTacFtdcRspAuthenticateField *pRspAuthenticate
     CTacFtdcUserLoginField req = {};
 
     // Set Client ID
-    strncpy(req.UserID, AccountNo, sizeof(req.UserID));
+    strncpy(req.UserID, userid, sizeof(req.UserID));
 
     // Set Client password
-    strncpy(req.Password, Password, sizeof(req.Password));
+    strncpy(req.Password, password, sizeof(req.Password));
 
     // Submit Login request
     api->ReqUserLogin(&req, 0);
