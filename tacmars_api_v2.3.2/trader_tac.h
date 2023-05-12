@@ -11,7 +11,6 @@
 #include <winterfell/instab.h>
 
 #include "TacFtdcTraderApi.h"
-#include "TacFtdcUserApiStruct.h"
 
 class TraderTac : public CTacFtdcTraderSpi {
 public:
@@ -62,17 +61,22 @@ private:
 private:
 	CTacFtdcInputOrderField new_order;
 	CTacFtdcInputOrderActionField cancel;
-	TacApiClientReqId reqid;
-	TacApiReferenceType orderref;
 	CTacFtdcTraderApi *api;
+
+    char *frontaddress;
+    char *userid;
+    char *password;
+    char *appid;
+    char *authcode;
+    char *clientlogfilepath;
+    char *exchange;
+
 	cfg_t *cfg;
-	TacApiRspLoginField m_LoginInfo;
-	TacApiReqLoginField reqUserLogin;
-	
-    std::map<std::string, TacApiContractIndexType> cNo2CIndex;
-	std::map<long, TacApiReferenceType> id2ref;
-	std::map<TacApiReferenceType, long> ref2id;
-	std::map<TacApiReferenceType, TacApiOrderIdType> ref2orderId; // ref 和 委托号建立索引
+
+    unsigned int orderref;
+
+	std::map<long, unsigned int> id2ref;
+	std::map<unsigned int, long> ref2id;
     volatile int login_finished;
 };
 
