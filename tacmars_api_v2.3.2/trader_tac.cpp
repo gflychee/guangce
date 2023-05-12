@@ -149,7 +149,7 @@ void TraderTac::OnRspOrderInsert(CTacFtdcRspOrderInsertField *pRspOrderInsert, C
 {
     long orderid = ref2id[pRspOrderInsert->OrderRef];
     if (pRspInfo->ErrorID == 0) {
-        trader_on_send_rtn(&trader, currtime(), orderid, strtol(pRspOrderInsert->OrderSysID, NULL, 10));
+        trader_on_send_rtn(&trader, currtime(), orderid, pRspOrderInsert->OrderSysID);
     } else {
         trader_on_send_err(&trader, currtime(), orderid, pRspInfo->ErrorID);
     }
@@ -175,7 +175,7 @@ void TraderTac::OnRtnOrder(CTacFtdcRtnOrderField *pOrder)
 
     long orderid = it->second;
     if (pOrder->OrderStatus == TAC_FTDC_OST_Canceled) {
-        trader_on_cancel_rtn(&trader, currtime(), orderid, pOrder->VolumeTotalOriginal - pOrder->VolumeTraded, strtol(pOrder->OrderSysID, NULL, 10));
+        trader_on_cancel_rtn(&trader, currtime(), orderid, pOrder->VolumeTotalOriginal - pOrder->VolumeTraded, pOrder->OrderSysID);
     }
 }
 
@@ -192,7 +192,7 @@ void TraderTac::OnRtnTrade(CTacFtdcRtnTradeField *pTrade)
     trade.orderid = ref2id[pTrade->OrderRef];
     trade.price = pTrade->Price;
     trade.volume = pTrade->Volume;
-    trade.sysid = strtol(pTrade->OrderSysID, NULL, 10);
+    trade.sysid = pTrade->OrderSysID;
     trade.recv_time = currtime();
     trader_on_trade_rtn(&trader, &trade);
 }
@@ -233,7 +233,7 @@ static inline unsigned char ees_encode_exchange(std::string exchange)
         return TAC_FTDC_EXID_CFFEX;
     } else if (exchange == "INE") {
         return TAC_FTDC_EXID_INE;
-    } esle {
+    } else {
         return TAC_FTDC_EXID_SHFE;
     }
 }
@@ -319,14 +319,6 @@ static int tac_logout(struct trader *trader)
     TraderTac *tac = (TraderTac *)trader->container;
     return tac->logout();
 }
-
-
-static int tac_query_position(struct trader *trader, int stid, int insidx)
-{
-    TraderTac *tac = (TraderTac *)trader->container;
-    return tac->query_position(stid, insidx);
-}
-
 
 static struct trader *tac_create(cfg_t *cfg, struct memdb *memdb)
 {
