@@ -1,0 +1,91 @@
+SetTraderApiCpuAffinity(int recv_cpu, int send_cpu);
+设置下单辅助线程cpu 是什么意思？ 下单操作不是一个
+
+SetUseAsyncRequest 方法
+isAsyncSend：为 True 则使用异步发送报单请求，此模式吞吐量较大。为
+False 则使用同步方式发送请求，不再占用 SetTraderApiCpuAffinity 中 send_cpu
+所绑定的核。
+
+SetUdpSendOpen 方法
+使用 Udp 协议发送，可以增加发送速度，但是有可能丢包，默认关闭。
+
+OnUdpMsgRej 方法
+检测到 Udp 丢包。 函数原型：
+void OnUdpMsgRej(int udpID);
+udpID：丢失的 Udp 包的 ID，用于和 ReqOrderInsert 的返回值做比对，范围
+0~65535，溢出回环。
+
+
+发单的时候不能选择前置？
+
+SetLogLevel
+
+///报单应答
+struct CTacFtdcRspOrderInsertField
+{
+    ///报单引用
+    TTacFtdcOrderRefType        OrderRef;
+    ///柜台订单号
+    TTacFtdcOrderRefType        OrderLocalID;
+    ///交易所订单号
+    TTacFtdcOrderRefType        OrderSysID;    为什么会有 sysid
+    ///客户代码
+    TTacFtdcClientIDType        ClientID;
+};
+
+/////////////////////////////////////////////////////////////////////////
+///TTacFtdcOrderStatusType是一个报单状态类型
+/////////////////////////////////////////////////////////////////////////
+///全部成交
+#define TAC_FTDC_OST_AllTraded '0'
+///部分成交还在队列中
+#define TAC_FTDC_OST_PartTradedQueueing '1'
+///部分成交不在队列中
+#define TAC_FTDC_OST_PartTradedNotQueueing '2'
+///未成交还在队列中
+#define TAC_FTDC_OST_NoTradeQueueing '3'
+///未成交不在队列中
+#define TAC_FTDC_OST_NoTradeNotQueueing '4'
+///撤单
+#define TAC_FTDC_OST_Canceled '5'
+
+// Order Status
+const int YD_OS_Accepted=0;
+const int YD_OS_Queuing=1;
+const int YD_OS_Canceled=2;
+const int YD_OS_AllTraded=3;
+const int YD_OS_Rejected=4;
+
+
+const DstarApiOrderStateType DSTAR_API_STATUS_ACCEPT        = '1';          // 已受理
+const DstarApiOrderStateType DSTAR_API_STATUS_QUEUE         = '2';          // 已排队
+const DstarApiOrderStateType DSTAR_API_STATUS_APPLY         = '3';          // 已申请(行权、弃权、套利等申请成功)
+const DstarApiOrderStateType DSTAR_API_STATUS_SUSPENDED     = '4';          // 已挂起
+const DstarApiOrderStateType DSTAR_API_STATUS_TRIGGERED     = '5';          // 已触发
+const DstarApiOrderStateType DSTAR_API_STATUS_PARTFILL      = '6';          // 部分成交
+const DstarApiOrderStateType DSTAR_API_STATUS_FILL          = '7';          // 完全成交
+const DstarApiOrderStateType DSTAR_API_STATUS_FAIL          = '8';          // 指令失败
+const DstarApiOrderStateType DSTAR_API_STATUS_DELETE        = 'B';          // 已撤单
+const DstarApiOrderStateType DSTAR_API_STATUS_LEFTDELETE    = 'C';          // 已撤余单
+const DstarApiOrderStateType DSTAR_API_STATUS_SYSDELETE     = 'D';          // 已删除
+
+    long orderid = it->second;
+    if (pOrder->OrderState == DSTAR_API_STATUS_QUEUE)
+        trader_on_send_rtn(&trader, currtime(), orderid, strtol(pOrder->SystemNo, NULL, 10));
+    else if (pOrder->OrderState == DSTAR_API_STATUS_DELETE || pOrder->OrderState == DSTAR_API_STATUS_LEFTDELETE)
+        trader_on_cancel_rtn(&trader, currtime(), orderid, pOrder->OrderQty - pOrder->MatchQty, strtol(pOrder->SystemNo, NULL, 10));
+    else if (pOrder->OrderState == DSTAR_API_STATUS_FAIL)
+        trader_on_send_err(&trader, currtime(), orderid, pOrder->ErrCode);
+    else {
+	if (pOrder->OrderState != DSTAR_API_STATUS_PARTFILL && pOrder->OrderState != DSTAR_API_STATUS_FILL && pOrder->OrderState != DSTAR_API_STATUS_ACCEPT)
+            wflog_msg("OnRtnOrder OrderState:%c ErrCode:%d", pOrder->OrderState, pOrder->ErrCode);
+    }
+
+
+
+发单的时候交易所需要填写么？
+///上海国际能源交易中心
+#define TAC_FTDC_EXID_INE '4'
+///上海期货交易所
+#define TAC_FTDC_EXID_SHFE '1'
+这两个是共用一个柜台？怎么区分
