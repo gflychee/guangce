@@ -67,7 +67,7 @@ int TraderTac::logout()
 
 void TraderTac::OnFrontConnected()
 {
-    wflog_msg("Front %s connected", FrontAddress);
+    wflog_msg("Front %s connected", frontaddress);
 
     CTacFtdcAuthenticateField req = {};
 
