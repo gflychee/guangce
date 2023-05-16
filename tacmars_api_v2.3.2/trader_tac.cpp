@@ -43,13 +43,13 @@ int TraderTac::login(cfg_t *cfg)
     }
     wflog_msg("version:%s",api->GetApiVersion());
     api->RegisterSpi(this);
-    api->RegisterFront(frontaddress);
-    api->SubscribePrivateTopic(TAC_TERT_QUICK);
-    api->SetLogFilePath(clientlogfilepath);
-    api->SetLogLevel(true);
-    api->SetTraderApiCpuAffinity(-1, 1); // recv_cpu 设为-1 不绑定cpu, send_cpu 设为大于0 的数，说明绑定cpu
+    api->SubscribePrivateTopic(TAC_TERT_QUICK); //只传送登录后私有流的内容
+    api->SetLogFilePath(clientlogfilepath); 
+    api->SetLogLevel(true); // 打开日志开关
+    api->SetUseAsyncRequest(false); // 同步发送
+    api->SetTraderApiCpuAffinity(-1, -1); // recv_cpu 设为-1 不绑定cpu, send_cpu 设为大于0 的数，说明绑定cpu,同步发送的话，send_cpu 不生效
     api->SetUdpSendOpen(true); // 使用udp协议发送，可以增加发送速度，但是有可能丢包。
-
+    
     // Start worker thread and init api after setup configuration
     api->Init();
 
