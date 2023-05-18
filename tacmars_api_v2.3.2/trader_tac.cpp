@@ -27,15 +27,6 @@ TraderTac::TraderTac(cfg_t *cfg, struct memdb *memdb) : orderref(0)
     authcode = config_read_string(cfg, "authcode");
     exchange = config_read_string(cfg, "exchange");
     clientlogfilepath = config_read_string(cfg, "clientlogfilepath");
-    wflog_msg("frontaddress:%s ", frontaddress);
-    wflog_msg("userid:%s ", userid);
-    wflog_msg("password:%s ", password);
-    wflog_msg("appid:%s ", appid);
-    wflog_msg("authcode:%s ", authcode);
-    wflog_msg("exchange:%s ", exchange);
-    wflog_msg("clientlogfilepath:%s ", clientlogfilepath);
-
-    api->RegisterFront(frontaddress);
 }
 
 int TraderTac::login(cfg_t *cfg)
@@ -48,6 +39,7 @@ int TraderTac::login(cfg_t *cfg)
     {
         wflog_exit(-1, "Create CTacFtdcTraderApi failed");
     }
+    api->RegisterFront(frontaddress);
     wflog_msg("version:%s",api->GetApiVersion());
     api->RegisterSpi(this);
     api->SubscribePrivateTopic(TAC_TERT_QUICK); //只传送登录后私有流的内容
