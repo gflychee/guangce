@@ -280,7 +280,7 @@ int TraderTac::cancel_order(struct order *order)
     //cancel.OrderLocalID = id2ref[order->orderid];
     int ret = api->ReqOrderAction(&cancel, 0);
     wflog_msg("cancel_order ret:%d", ret);
-    return result;
+    return ret;
 }
 
 
