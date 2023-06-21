@@ -31,6 +31,7 @@ TraderTac::TraderTac(cfg_t *cfg, struct memdb *memdb) : orderref(0)
 
 int TraderTac::login(cfg_t *cfg)
 {
+    wflog_msg("test,20230621");
     login_finished = 0;
     
     api = CTacFtdcTraderApi::CreateFtdcTraderApi("flow");
@@ -54,6 +55,9 @@ int TraderTac::login(cfg_t *cfg)
 
     while (!login_finished)
 		usleep(1000);
+
+
+    wflog_msg("Login done:%d",login_finished);
 
     return 0;
 }
@@ -146,6 +150,7 @@ void TraderTac::OnUdpMsgRej(int udpID)
 ///报单录入应答  失败和成功都只有一次
 void TraderTac::OnRspOrderInsert(CTacFtdcRspOrderInsertField *pRspOrderInsert, CTacFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
+    wflog_msg("OnRspOrderInsert,OrderRef:%lu,OrderLocalID:%lu,OrderSysID:%lu,ClientID:%s,ErrorID:%d,ErrorMsg:%s,nRequestID:%d,bIsLast:%d",pRspOrderInsert->OrderRef,pRspOrderInsert->OrderLocalID,pRspOrderInsert->OrderSysID,pRspOrderInsert->ClientID,pRspInfo->ErrorID,pRspInfo->ErrorMsg,nRequestID,bIsLast);
     long orderid = ref2id[pRspOrderInsert->OrderRef];
     if (pRspInfo->ErrorID == 0) {
         trader_on_send_rtn(&trader, currtime(), orderid, pRspOrderInsert->OrderSysID);
@@ -157,6 +162,7 @@ void TraderTac::OnRspOrderInsert(CTacFtdcRspOrderInsertField *pRspOrderInsert, C
 ///报单操作应答  失败才会有，成功不会有
 void TraderTac::OnRspOrderAction(CTacFtdcRspOrderActionField *pRspOrderAction, CTacFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
+    wflog_msg("OnRspOrderAction,OrderRef:%lu,OrderLocalID:%lu,ClientID:%s,ErrorID:%d,ErrorMsg:%s,nRequestID:%d,bIsLast:%d",pRspOrderAction->OrderRef,pRspOrderAction->OrderLocalID,pRspOrderAction->ClientID,pRspInfo->ErrorID,pRspInfo->ErrorMsg,nRequestID,bIsLast);
     if (pRspInfo->ErrorID != 0) {
         long orderid = ref2id[pRspOrderAction->OrderRef];
         trader_on_cancel_err(&trader, currtime(), orderid, pRspInfo->ErrorID);
@@ -166,6 +172,7 @@ void TraderTac::OnRspOrderAction(CTacFtdcRspOrderActionField *pRspOrderAction, C
 ///报单回报
 void TraderTac::OnRtnOrder(CTacFtdcRtnOrderField *pOrder) 
 {
+    wflog_msg("OnRtnOrder,OrderRef:%lu,OrderSysID:%lu,OrderLocalID:%lu,OrderStatus:%c,VolumeTraded:%d,VolumeTotal:%d,ClientID:%s,InstrumentID:%s,OrderPriceType:%c,Direction:%c,OffsetFlag:%c,HedgeFlag:%c,LimitPrice:%lf,TimeCondition:%c,VolumeTotalOriginal:%d,ExchangeID:%c",pOrder->OrderRef,pOrder->OrderSysID,pOrder->OrderLocalID,pOrder->OrderStatus,pOrder->VolumeTraded,pOrder->VolumeTotal,pOrder->ClientID,pOrder->InstrumentID,pOrder->OrderPriceType,pOrder->Direction,pOrder->OffsetFlag,pOrder->HedgeFlag,pOrder->LimitPrice,pOrder->TimeCondition,pOrder->VolumeTotalOriginal,pOrder->ExchangeID);
     auto it = ref2id.find(pOrder->OrderRef);
     if (it == ref2id.end()) {
         wflog_msg("OnRtnOrder pOrder->OrderRef:%lu not found", pOrder->OrderRef);
@@ -181,6 +188,7 @@ void TraderTac::OnRtnOrder(CTacFtdcRtnOrderField *pOrder)
 ///成交回报
 void TraderTac::OnRtnTrade(CTacFtdcRtnTradeField *pTrade)
 {
+    wflog_msg("OnRtnOrder,TradeID:%lu,OrderSysID:%lu,OrderLocalID:%lu,OrderRef:%lu,ClientID:%s,InstrumentID:%s,Direction:%c,OffsetFlag:%c,HedgeFlag:%c,Price:%lf,Volume:%d,ExchangeID:%c",pTrade->TradeID,pTrade->OrderSysID,pTrade->OrderLocalID,pTrade->OrderRef,pTrade->ClientID,pTrade->InstrumentID,pTrade->Direction,pTrade->OffsetFlag,pTrade->HedgeFlag,pTrade->Price,pTrade->Volume,pTrade->ExchangeID);
     struct trade trade;
     const int insidx = ins2idx(trader.instab, pTrade->InstrumentID);
     if (insidx == -1) {
