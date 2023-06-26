@@ -31,7 +31,7 @@ TraderTac::TraderTac(cfg_t *cfg, struct memdb *memdb) : orderref(0)
 
 int TraderTac::login(cfg_t *cfg)
 {
-    wflog_msg("test,20230621");
+    wflog_msg("test,20230621 1");
     login_finished = 0;
     
     api = CTacFtdcTraderApi::CreateFtdcTraderApi("flow");
@@ -55,9 +55,6 @@ int TraderTac::login(cfg_t *cfg)
 
     while (!login_finished)
 		usleep(1000);
-
-
-    wflog_msg("Login done:%d",login_finished);
 
     return 0;
 }
@@ -85,6 +82,8 @@ void TraderTac::OnFrontConnected()
 
     // Submit Login request
     api->ReqAuthenticate(&req, 0);
+
+    wflog_msg("OnFrontConnected done");
 }
 
 void TraderTac::OnFrontDisconnected(int nReason)
@@ -132,7 +131,7 @@ void TraderTac::OnRspUserLogin(CTacFtdcRspUserLoginField *pRspUserLogin, CTacFtd
 
     login_finished = 1;
 
-    wflog_msg("Login");
+    wflog_msg("Login,orderref:%u", orderref);
 }
 
 ///用户登出应答
@@ -188,7 +187,7 @@ void TraderTac::OnRtnOrder(CTacFtdcRtnOrderField *pOrder)
 ///成交回报
 void TraderTac::OnRtnTrade(CTacFtdcRtnTradeField *pTrade)
 {
-    wflog_msg("OnRtnOrder,TradeID:%lu,OrderSysID:%lu,OrderLocalID:%lu,OrderRef:%lu,ClientID:%s,InstrumentID:%s,Direction:%c,OffsetFlag:%c,HedgeFlag:%c,Price:%lf,Volume:%d,ExchangeID:%c",pTrade->TradeID,pTrade->OrderSysID,pTrade->OrderLocalID,pTrade->OrderRef,pTrade->ClientID,pTrade->InstrumentID,pTrade->Direction,pTrade->OffsetFlag,pTrade->HedgeFlag,pTrade->Price,pTrade->Volume,pTrade->ExchangeID);
+    wflog_msg("OnRtnTrade,TradeID:%lu,OrderSysID:%lu,OrderLocalID:%lu,OrderRef:%lu,ClientID:%s,InstrumentID:%s,Direction:%c,OffsetFlag:%c,HedgeFlag:%c,Price:%lf,Volume:%d,ExchangeID:%c",pTrade->TradeID,pTrade->OrderSysID,pTrade->OrderLocalID,pTrade->OrderRef,pTrade->ClientID,pTrade->InstrumentID,pTrade->Direction,pTrade->OffsetFlag,pTrade->HedgeFlag,pTrade->Price,pTrade->Volume,pTrade->ExchangeID);
     struct trade trade;
     const int insidx = ins2idx(trader.instab, pTrade->InstrumentID);
     if (insidx == -1) {
@@ -262,6 +261,7 @@ void TraderTac::init_cancel(CTacFtdcInputOrderActionField *req)
 
 int TraderTac::send_order(struct order *order)
 {
+    wflog_msg("start send_order,orderid:%ld", order->orderid);
     const char *ins = idx2ins(trader.instab, order->insidx);
     new_order.Direction = tac_encode_direction(order->flags);
     new_order.OffsetFlag = tac_encode_offset(order->flags);
@@ -279,16 +279,17 @@ int TraderTac::send_order(struct order *order)
     int ret = api->ReqOrderInsert(&new_order, 0);
     wflog_msg("send_order ret:%d", ret);
 
-    return ret;
+    return 0;
 }
 
 int TraderTac::cancel_order(struct order *order)
 {
+    wflog_msg("start cancel_order, orderid:%ld", order->orderid);
     cancel.OrderRef = id2ref[order->orderid];
     //cancel.OrderLocalID = id2ref[order->orderid];
     int ret = api->ReqOrderAction(&cancel, 0);
     wflog_msg("cancel_order ret:%d", ret);
-    return ret;
+    return 0;
 }
 
 
